@@ -19,27 +19,49 @@ jobs:
   job1:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: terraform main.tf
-
-      # Runs a set of commands using the runners shell
-      # - name: Run a multi-line script
-      #   run: |
-      #     echo Add other actions to build,
-      #     echo test, and deploy your project.
+    
+  
   job2:
     if: ${{ always() }}
-    needs: job1
+    #needs: job1
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
+    
+    defaults:
+      run:
+        working-directory: ./group
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Terraform HasiCorp SetUp
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.2.6
+
+      - name: AWS Credentials Configuration
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.aws-region }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+      
+      - name: terraform init
+        run: 
+          terraform init
+      - name: terraform validate
+        run: 
+          terraform validate
+
+      - name: terraform plan
+        run: 
+          terraform plan
+
+      - name: terraform apply
+        run: 
+          terraform apply -auto-approve
     
